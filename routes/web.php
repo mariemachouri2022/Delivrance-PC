@@ -16,3 +16,5 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', function () {
     return view('welcome');
 });
+//Route::get('/',HomeController::class)->name('home');
+Route::get('permis/{permis}', [PermisController::class, 'show'])->name('permis.show');

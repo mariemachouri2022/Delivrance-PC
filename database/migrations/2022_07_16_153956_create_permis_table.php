@@ -13,17 +13,16 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('users', function (Blueprint $table) {
+        Schema::create('permis', function (Blueprint $table) {
             $table->id();
-            $table->integer('Numero_ID');
+            $table->integer('Numero_pc');
             $table->string('Nom');
             $table->string('Prenom');
-            $table->string('name');
-            $table->string('email')->unique();
-            $table->timestamp('email_verified_at')->nullable();
-            $table->string('password');
-
-            $table->rememberToken();
+            $table->date('Date_reussite_permis');
+            $table->date('Date_Delivrance');
+            $table->date('Date_Edition');
+            $table->string('Agent_delivrance');
+            $table->foreignId('user_id')->constrained()->onDelete('cascade');
             $table->timestamps();
         });
     }
@@ -35,6 +34,6 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('users');
+        Schema::dropIfExists('permis');
     }
 };
