@@ -4,7 +4,7 @@
     <a type="button" class="btn btn-primary" href="{{URL::previous()}}">Retour</a>
     @if((Auth::check())&&(Auth::user()->id === $permis->user_id))
         <a type="button" class="btn btn-primary" href="{{route('permis.edit',[$permis])}}">Modifier</a>
-        <form style="display: inline;" action="{{ route('events.destroy', [$permis]) }}" method="post">
+        <form style="display: inline;" action="{{ route('permis.destroy', [$permis]) }}" method="post">
              @csrf
             @method('DELETE')
              <button class="btn btn-danger" type="submit">
@@ -28,7 +28,7 @@
             <p class="card-text">Date d édition : {{$permis->Date_Edition}}</p>
             <p class="card-text">Agent de délivrance : {{$permis->Agent_delivrance}}</p>
 
-            
+
 
             </div>
         </div>

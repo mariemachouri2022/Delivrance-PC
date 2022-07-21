@@ -14,7 +14,7 @@
             <input  class="form-control" id="Nom" name="Nom" value="{{old('Nom',$permis->Nom)}}">
         </div>
         <div class="mb-3">
-            <label for="lieu" class="form-label">Prénom: </label>
+            <label for="Prenom" class="form-label">Prénom: </label>
             <input  class="form-control" id="Prenom" name="Prenom" value="{{old('Prenom',$permis->Prenom)}}">
         </div>
         <div class="mb-3">
@@ -35,7 +35,7 @@
         </div>
     -->
     <div class="mb-3">
-        <label for="Agent_delivrance" class="form-label">Prénom: </label>
+        <label for="Agent_delivrance" class="form-label">Agent de délivrance: </label>
         <input  class="form-control" id="Agent_delivrance" name="Agent_delivrance" value="{{old('Agent_delivrance',$permis->Agent_delivrance)}}">
     </div>
         <a type="button" class="btn btn-secondary" href="{{route('permis.index')}}">Annuler</a>

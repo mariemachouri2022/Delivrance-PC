@@ -5,6 +5,12 @@ namespace App\Http\Controllers;
 use App\Models\Permis;
 use Illuminate\Http\Request;
 use App\Models\User;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\ValidationException;
+
+use Str;
 
 class PermisController extends Controller
 {
@@ -27,7 +33,7 @@ class PermisController extends Controller
             'Date_reussite_permis' => 'Date de réussite: '.$permis->Date_reussite_permis,
             'Date_Delivrance' => 'Date de délivrance: '.$permis->Date_Delivrance,
             'Date_Edition' => 'Date d édition : '.$permis->Date_Edition,
-            'Agent_delivrance' => 'Agent de délivrance '.$permis->Agent_delivrance,
+            'Agent_delivrance' => 'Agent de délivrance: '.$permis->Agent_delivrance,
             'heading' => $description ,
             'permis' => $permis
         ];
@@ -61,6 +67,39 @@ class PermisController extends Controller
     public function store(Request $request)
     {
         //
+        DB::beginTransaction();
+        try{
+            $validated = $request->validated();
+            $poster=null;
+            $urlPoster=null;
+
+            if(($request->file('poster')!==null)&&($request->file('poster')->isValid())){
+
+                $ext=$request->file('poster')->extension();
+                $fileName=Str::uuid().'.'.$ext;
+                $poster=$request->file('poster')->storeAs('public/images',$fileName);
+                $urlPoster=env('APP_URL').Storage::url($poster);
+            }
+
+            Auth::user()->permis()->create([
+                'Numero_pc'=> $validated['Numero_pc'],
+                'Nom' => $validated['Nom'],
+                'Prenom' => $validated['Prenom'],
+                'poster' => $poster,
+                'urlPoster' => $urlPoster,
+                'Date_reussite_permis' => $validated['Date_reussite_permis'],
+                'Date_Delivrance' => $validated['Date_Delivrance'] ,
+                'Date_Edition' => $validated['Date_Edition'],
+                'Agent_delivrance' => $validated['Agent_delivrance']
+            ]);
+
+        }catch(ValidationException $exception){
+            DB::rollBack();
+        }
+
+        DB::commit();
+
+        return redirect()->route('permis.index');
     }
 
     /**
@@ -78,7 +117,7 @@ class PermisController extends Controller
             'Date_reussite_permis' => 'Date de réussite: '.$permis->Date_reussite_permis,
             'Date_Delivrance' => 'Date de délivrance: '.$permis->Date_Delivrance,
             'Date_Edition' => 'Date d édition : '.$permis->Date_Edition,
-            'Agent_delivrance' => 'Agent de délivrance '.$permis->Agent_delivrance,
+            'Agent_delivrance' => 'Agent de délivrance: '.$permis->Agent_delivrance,
             'heading' => config('app.name'),
             'permis' => $permis
         ];
@@ -94,6 +133,15 @@ class PermisController extends Controller
     public function edit(Permis $permis)
     {
         //
+        abort_if(auth()->user()->id !== $permis->organisateur->id,403 );
+
+        $data=[
+            'title' => $description="Editer PC ".$permis->nom,
+            'description' => $description,
+            'heading' => $description,
+            'permis' =>$permis
+        ];
+        return view('permis.edit',$data);
     }
 
     /**
@@ -106,6 +154,51 @@ class PermisController extends Controller
     public function update(Request $request, Permis $permis)
     {
         //
+        abort_if($permis->organisateur->id !== auth()->id(),403);
+
+        DB::beginTransaction();
+        try{
+            $validated = $request->validated();
+
+            $poster=$permis>poster;
+            $urlPoster=$permis->urlPoster;
+
+            if(($request->file('poster')!==null)&&($request->file('poster')->isValid())){
+
+                $ext=$request->file('poster')->extension();
+                $fileName=Str::uuid().'.'.$ext;
+                $poster=$request->file('poster')->storeAs('public/images',$fileName);
+                $urlPoster=env('APP_URL').Storage::url($poster);
+
+
+
+                //Supprimer l'ancien poster s'il existe
+                DB::afterCommit(function() use($permis){
+                    if($permis->poster!=null){
+                        Storage::delete($permis->poster);
+                    }
+
+                });
+
+            }
+            Auth::user()->permis()->where('id',$permis->id)->update([
+                'Numero_pc'=> $validated['Numero_pc'],
+                'Nom' => $validated['Nom'],
+                'Prenom' => $validated['Prenom'],
+                'poster' => $poster,
+                'urlPoster' => $urlPoster,
+                'Date_reussite_permis' => $validated['Date_reussite_permis'],
+                'Date_Delivrance' => $validated['Date_Delivrance'] ,
+                'Date_Edition' => $validated['Date_Edition'],
+                'Agent_delivrance' => $validated['Agent_delivrance']
+            ]);
+
+        }catch(ValidationException $exception){
+            DB::rollback();
+        }
+        DB::commit();
+
+        return redirect()->route('permis.show',[$permis]);
     }
 
     /**
@@ -117,5 +210,25 @@ class PermisController extends Controller
     public function destroy(Permis $permis)
     {
         //
+        abort_if($permis->organisateur->id !== auth()->id(),403);
+
+        DB::beginTransaction();
+        try{
+            DB::afterCommit(function() use($permis){
+
+                if($permis->poster!=null){
+                    Storage::delete($permis->poster);
+                }
+
+            });
+
+            $permis->delete();
+
+        }catch(ValidationException $e){
+            DB::rollback();
+        }
+        DB::commit();
+
+        return redirect()->route('permis.index');
     }
 }
