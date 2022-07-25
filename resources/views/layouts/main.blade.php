@@ -47,7 +47,7 @@
         </main>
         <footer class="footer mt-auto py-3 bg-light">
             <div class="container">
-              <span class="text-muted">Copyright &copy; 2022 ISET Bizerte DSI22</span>
+              <span class="text-muted">Copyright &copy;</span>
             </div>
         </footer>
     </div>

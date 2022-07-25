@@ -1,6 +1,8 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\PermisController;
+use App\Http\Controllers\HomeController;
 
 /*
 |--------------------------------------------------------------------------
@@ -16,5 +18,8 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', function () {
     return view('welcome');
 });
-//Route::get('/',HomeController::class)->name('home');
-Route::get('permis/{permis}', [PermisController::class, 'show'])->name('permis.show');
+Route::get('/', HomeController::class)->name('home');
+
+
+ //Route::get('/',[PermisController::class,'all']);
+ Route::resource('permis',PermisController::class);
